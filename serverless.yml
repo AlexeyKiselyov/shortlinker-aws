@@ -1,0 +1,129 @@
+service: shortlinker-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  lambdaHashingVersion: 20201221
+  region: eu-central-1
+  stage: dev
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - 'dynamodb:GetItem'
+            - 'dynamodb:PutItem'
+            - 'dynamodb:DeleteItem'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:Query'
+          Resource:
+            - { 'Fn::GetAtt': ['UsersTable', 'Arn'] }
+            - { 'Fn::GetAtt': ['LinksTable', 'Arn'] }
+
+functions:
+  register:
+    handler: src/handlers/auth.register
+    events:
+      - http:
+          path: /sign-up
+          method: post
+  login:
+    handler: src/handlers/auth.login
+    events:
+      - http:
+          path: /sign-in
+          method: post
+  createLink:
+    handler: src/handlers/links.createLink
+    events:
+      - http:
+          path: /link
+          method: post
+  getLink:
+    handler: src/handlers/links.getLink
+    events:
+      - http:
+          path: /link/{id}
+          method: get
+  getLinks:
+    handler: src/handlers/links.getLinks
+    events:
+      - http:
+          path: /links
+          method: get
+  deleteLink:
+    handler: src/handlers/links.deleteLink
+    events:
+      - http:
+          path: /link/{id}
+          method: delete
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dotenv-plugin
+  # - serverless-esbuild
+  - serverless-offline
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: UsersTable
+
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    LinksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: LinksTable
+
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+
+          - AttributeName: ownerId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: get-owner-links-index
+            KeySchema:
+              - AttributeName: ownerId
+                KeyType: HASH
+
+            Projection:
+              ProjectionType: ALL
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+# custom:
+#   esbuild:
+#     entryPoints:
+#       - './src/**/*.ts'
+#     bundle: true
+#     minify: true
+#     platform: 'node'
+#     sourcemap: true
+#     target: 'node18'
