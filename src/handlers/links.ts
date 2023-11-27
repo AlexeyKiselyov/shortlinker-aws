@@ -155,7 +155,12 @@ export const getLink = async (
       },
       ReturnValues: 'ALL_NEW',
     });
+
     const response = await docClient.send(updateLinkCommand);
+
+    if (!response.Attributes) {
+      throw HttpError(404);
+    }
 
     return {
       statusCode: 302,
