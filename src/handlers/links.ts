@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DeleteItemCommand } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import { createLinkSchema, getLinkSchema } from '../models/link';
 
@@ -21,7 +21,7 @@ export const createLink = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // await createLinkTable();
+    await createLinkTable();
 
     const decodedToken = authenticate(event);
     if (!decodedToken) {
@@ -41,6 +41,7 @@ export const createLink = async (
       id: shortUrl,
       originUrl,
       duration,
+      visit: 0,
       ownerId: userId,
     };
 
@@ -143,23 +144,23 @@ export const getLink = async (
 
     await getLinkSchema.validate(id);
 
-    const getLinkCommand = new GetCommand({
+    const updateLinkCommand = new UpdateCommand({
       TableName: tableName,
       Key: {
         id,
       },
+      UpdateExpression: 'set visit = visit + :increment',
+      ExpressionAttributeValues: {
+        ':increment': 1,
+      },
+      ReturnValues: 'ALL_NEW',
     });
-
-    const response = await docClient.send(getLinkCommand);
-    console.log(response.Item);
-    if (!response.Item) {
-      throw HttpError(404);
-    }
+    const response = await docClient.send(updateLinkCommand);
 
     return {
       statusCode: 302,
       headers: {
-        Location: response.Item?.originUrl,
+        Location: response.Attributes?.originUrl,
       },
       body: '',
     };
