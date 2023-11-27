@@ -1,10 +1,16 @@
-import { docClient, createLinkTable, createUserTable } from './createTables';
+import {
+  docClientLocal,
+  docClientAws,
+  createLinkTable,
+  createUserTable,
+} from './createTables';
 import { generateShortUrl } from './generateShortUrl';
 import { handleError } from './handleError';
 import { HttpError } from './HttpError';
 
 export {
-  docClient,
+  docClientLocal,
+  docClientAws,
   createLinkTable,
   createUserTable,
   generateShortUrl,

@@ -107,7 +107,7 @@ resources:
           WriteCapacityUnits: 1
 
         GlobalSecondaryIndexes:
-          - IndexName: get-owner-links-index
+          - IndexName: ownerIdGSI
             KeySchema:
               - AttributeName: ownerId
                 KeyType: HASH
@@ -118,12 +118,21 @@ resources:
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
-# custom:
-#   esbuild:
-#     entryPoints:
-#       - './src/**/*.ts'
-#     bundle: true
-#     minify: true
-#     platform: 'node'
-#     sourcemap: true
-#     target: 'node18'
+
+custom:
+  globalTables:
+    regions:
+      - eu-central-1
+      - eu-west-3
+    sources:
+      - UsersTable
+      - LinksTable
+
+  # esbuild:
+  #   entryPoints:
+  #     - './src/**/*.ts'
+  #   bundle: true
+  #   minify: true
+  #   platform: 'node'
+  #   sourcemap: true
+  #   target: 'node18'

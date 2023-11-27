@@ -9,19 +9,27 @@ import {
   HttpError,
   generateShortUrl,
   createLinkTable,
-  docClient,
+  docClientLocal,
+  docClientAws,
 } from '../helpers';
 
 import { authenticate } from '../middlewares/authenticate';
 
-const tableName = 'LinksTable';
+import 'dotenv/config';
+type ProcessEnv = {
+  GSI_OWNER_ID_PRIMARY: string;
+  LINKS_TABLE_NAME: string;
+};
+const { GSI_OWNER_ID_PRIMARY, LINKS_TABLE_NAME } = process.env as ProcessEnv;
+
+const docClient = docClientLocal;
 
 // create short link and save in db
 export const createLink = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    await createLinkTable();
+    // await createLinkTable();
 
     const decodedToken = authenticate(event);
     if (!decodedToken) {
@@ -46,7 +54,7 @@ export const createLink = async (
     };
 
     const createLinkCommand = new PutCommand({
-      TableName: tableName,
+      TableName: LINKS_TABLE_NAME,
       Item: newLink,
     });
 
@@ -79,7 +87,7 @@ export const deleteLink = async (
     await getLinkSchema.validate(id);
 
     const deleteLinkCommand = new DeleteItemCommand({
-      TableName: tableName,
+      TableName: LINKS_TABLE_NAME,
       Key: {
         id: { S: id! },
       },
@@ -109,8 +117,8 @@ export const getLinks = async (
     const ownerId = decodedToken?.id;
 
     const getLinksCommand = new QueryCommand({
-      TableName: tableName,
-      IndexName: 'get-owner-links-index',
+      TableName: LINKS_TABLE_NAME,
+      IndexName: GSI_OWNER_ID_PRIMARY,
       KeyConditionExpression: 'ownerId = :ownerId',
       ExpressionAttributeValues: {
         ':ownerId': ownerId,
@@ -145,7 +153,7 @@ export const getLink = async (
     await getLinkSchema.validate(id);
 
     const updateLinkCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: LINKS_TABLE_NAME,
       Key: {
         id,
       },

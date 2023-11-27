@@ -1,11 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import {
-  GetCommand,
-  PutCommand,
-  UpdateCommand,
-  DynamoDBDocumentClient,
-} from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import { v4 } from 'uuid';
 
@@ -14,27 +8,31 @@ import { registerSchema, loginSchema } from '../models/user';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
-import { HttpError, handleError, createUserTable, docClient } from '../helpers';
+import {
+  HttpError,
+  handleError,
+  createUserTable,
+  docClientLocal,
+  docClientAws,
+} from '../helpers';
 
 import 'dotenv/config';
 type ProcessEnv = {
   TOKEN_SECRET_KEY: string;
   TOKEN_EXPIRES: string;
+  USERS_TABLE_NAME: string;
 };
+const { TOKEN_SECRET_KEY, TOKEN_EXPIRES, USERS_TABLE_NAME } =
+  process.env as ProcessEnv;
 
-const { TOKEN_SECRET_KEY, TOKEN_EXPIRES } = process.env as ProcessEnv;
-
-// db local setup
-const tableName = 'UsersTable';
-
-docClient;
+const docClient = docClientLocal;
 
 // sign up controller
 export const register = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    await createUserTable();
+    // await createUserTable();
 
     const reqBody = JSON.parse(event.body as string);
 
@@ -43,7 +41,7 @@ export const register = async (
     const { email, password } = reqBody;
 
     const getUserCommand = new GetCommand({
-      TableName: tableName,
+      TableName: USERS_TABLE_NAME,
       Key: {
         email,
       },
@@ -75,7 +73,7 @@ export const register = async (
     };
 
     const createUserCommand = new PutCommand({
-      TableName: tableName,
+      TableName: USERS_TABLE_NAME,
       Item: newUser,
     });
 
@@ -105,7 +103,7 @@ export const login = async (
     const { email, password } = reqBody;
 
     const getUserCommand = new GetCommand({
-      TableName: tableName,
+      TableName: USERS_TABLE_NAME,
       Key: {
         email,
       },
@@ -144,7 +142,7 @@ export const login = async (
     });
 
     const updateUserCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: USERS_TABLE_NAME,
       Key: {
         email,
       },

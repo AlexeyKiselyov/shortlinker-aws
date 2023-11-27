@@ -9,7 +9,8 @@ const client = new DynamoDBClient({
   endpoint: 'http://localhost:8000',
 });
 
-export const docClient = DynamoDBDocumentClient.from(client);
+export const docClientLocal = DynamoDBDocumentClient.from(client);
+export const docClientAws = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 export const createUserTable = async () => {
   const command = new CreateTableCommand({
@@ -61,7 +62,7 @@ export const createLinkTable = async () => {
     },
     GlobalSecondaryIndexes: [
       {
-        IndexName: 'get-owner-links-index',
+        IndexName: 'ownerIdGSI',
         KeySchema: [{ AttributeName: 'ownerId', KeyType: 'HASH' }],
         Projection: {
           ProjectionType: 'ALL',
