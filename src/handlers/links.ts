@@ -25,9 +25,9 @@ export const createLink = async (
 
     const decodedToken = authenticate(event);
     if (!decodedToken) {
-      HttpError(401);
+      throw HttpError(401);
     }
-    const userId = decodedToken?.id;
+    const userId = decodedToken?.id!;
 
     const reqBody = JSON.parse(event.body as string);
 
@@ -35,7 +35,7 @@ export const createLink = async (
 
     const { originUrl, duration } = reqBody;
 
-    const shortUrl = generateShortUrl(originUrl);
+    const shortUrl = generateShortUrl(originUrl, userId);
 
     const newLink = {
       id: shortUrl,
@@ -67,12 +67,12 @@ export const deleteLink = async (
   try {
     const decodedToken = authenticate(event);
     if (!decodedToken) {
-      HttpError(401);
+      throw HttpError(401);
     }
 
     const id = event.pathParameters?.id as string | undefined;
     if (!id) {
-      HttpError(400, 'Missed ID Parameter');
+      throw HttpError(400, 'Missed ID Parameter');
     }
 
     await getLinkSchema.validate(id);
@@ -102,7 +102,7 @@ export const getLinks = async (
   try {
     const decodedToken = authenticate(event);
     if (!decodedToken) {
-      HttpError(401);
+      throw HttpError(401);
     }
 
     const ownerId = decodedToken?.id;
@@ -119,7 +119,7 @@ export const getLinks = async (
     const response = await docClient.send(getLinksCommand);
 
     if (!response.Items) {
-      HttpError(404);
+      throw HttpError(404);
     }
 
     return {
@@ -138,7 +138,7 @@ export const getLink = async (
   try {
     const id = event.pathParameters?.id as string | undefined;
     if (!id) {
-      HttpError(400, 'Missed ID Parameter');
+      throw HttpError(400, 'Missed ID Parameter');
     }
 
     await getLinkSchema.validate(id);
@@ -151,9 +151,9 @@ export const getLink = async (
     });
 
     const response = await docClient.send(getLinkCommand);
-
+    console.log(response.Item);
     if (!response.Item) {
-      HttpError(404);
+      throw HttpError(404);
     }
 
     return {

@@ -34,7 +34,7 @@ export const register = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // await createUserTable();
+    await createUserTable();
 
     const reqBody = JSON.parse(event.body as string);
 
@@ -52,7 +52,7 @@ export const register = async (
     const user = await docClient.send(getUserCommand);
 
     if (user.Item) {
-      HttpError(409, 'Email in use');
+      throw HttpError(409, 'Email in use');
     }
 
     const hashPassword = await bcrypt.hash(String(password), 10);

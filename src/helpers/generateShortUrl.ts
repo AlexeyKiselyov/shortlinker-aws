@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
 
-export const generateShortUrl = (url: string): string => {
+export const generateShortUrl = (url: string, userId: string): string => {
   const hashedUrl = crypto
     .createHash('md5')
-    .update(url)
+    .update(url + userId)
     .digest('hex')
     .slice(0, 6);
 
