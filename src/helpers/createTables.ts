@@ -1,3 +1,4 @@
+// db local with Docker
 import { DynamoDBClient, CreateTableCommand } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 

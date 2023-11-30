@@ -4,8 +4,8 @@ frameworkVersion: '3'
 
 provider:
   name: aws
+  deploymentMethod: direct
   runtime: nodejs18.x
-  lambdaHashingVersion: 20201221
   region: eu-central-1
   stage: dev
 
@@ -14,58 +14,86 @@ provider:
       statements:
         - Effect: Allow
           Action:
-            - 'dynamodb:GetItem'
-            - 'dynamodb:PutItem'
-            - 'dynamodb:DeleteItem'
-            - 'dynamodb:UpdateItem'
-            - 'dynamodb:Query'
-          Resource:
-            - { 'Fn::GetAtt': ['UsersTable', 'Arn'] }
-            - { 'Fn::GetAtt': ['LinksTable', 'Arn'] }
+            - 'dynamodb:*'
+            - 'ses:*'
+          Resource: '*'
+
+plugins:
+  - serverless-lift
+  - serverless-dotenv-plugin
+  - serverless-plugin-typescript
+  - serverless-esbuild
+  - serverless-offline
+
+package:
+  individually: true
+
+constructs:
+  jobs:
+    type: queue
+    batchSize: 10
+    worker:
+      handler: dist/lambdas/worker.handler
 
 functions:
   register:
-    handler: src/handlers/auth.register
+    handler: dist/lambdas/auth.register
     events:
       - http:
           path: /sign-up
           method: post
   login:
-    handler: src/handlers/auth.login
+    handler: dist/lambdas/auth.login
     events:
       - http:
           path: /sign-in
           method: post
   createLink:
-    handler: src/handlers/links.createLink
+    handler: dist/lambdas/links.createLink
     events:
       - http:
           path: /link
           method: post
   getLink:
-    handler: src/handlers/links.getLink
+    handler: dist/lambdas/links.getLink
     events:
       - http:
           path: /link/{id}
           method: get
   getLinks:
-    handler: src/handlers/links.getLinks
+    handler: dist/lambdas/links.getLinks
     events:
       - http:
           path: /links
           method: get
   deleteLink:
-    handler: src/handlers/links.deleteLink
+    handler: dist/lambdas/links.deleteLink
     events:
       - http:
           path: /link/{id}
           method: delete
 
-plugins:
-  - serverless-plugin-typescript
-  - serverless-dotenv-plugin
-  # - serverless-esbuild
-  - serverless-offline
+  publisher:
+    handler: dist/lambdas/publisher.handler
+    events:
+      - eventBridge:
+          schedule: rate(10 minutes)
+    environment:
+      QUEUE_URL: ${construct:jobs.queueUrl}
+
+  # processExpiredLinks:
+  #   handler: src/lambdas/processExpiredLinks.handler
+  #   events:
+  #     - eventBridge:
+  #         schedule: rate(1 hour)
+
+  #     - sqs:
+  #         batchSize: 10
+  #         functionResponseType: ReportBatchItemFailures
+
+  #   environment:
+  #     SQS_QUEUE_URL:
+  #       Fn::ImportValue: ExpiredLinksSQSQueueUrl
 
 resources:
   Resources:
@@ -119,6 +147,27 @@ resources:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
+    # ExpiredLinksSQSQueue:
+    #   Type: 'AWS::SQS::Queue'
+    #   Properties:
+    #     QueueName: 'ExpiredLinksSQSQueue'
+
+    # ExpiredLinksSQSQueuePolicy:
+    #   Type: AWS::SQS::QueuePolicy
+    #   Properties:
+    #     Queues:
+    #       - Ref: ExpiredLinksSQSQueue
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal: '*'
+    #           Action: 'sqs:SendMessage'
+    #           Resource:
+    #             Fn::GetAtt:
+    #               - ExpiredLinksSQSQueue
+    #               - Arn
+
 custom:
   globalTables:
     regions:
@@ -128,7 +177,8 @@ custom:
       - UsersTable
       - LinksTable
 
-  # esbuild:
+  esbuild:
+    tsconfig: true
   #   entryPoints:
   #     - './src/**/*.ts'
   #   bundle: true
@@ -136,3 +186,11 @@ custom:
   #   platform: 'node'
   #   sourcemap: true
   #   target: 'node18'
+# Outputs:
+#   ExpiredLinksSQSQueueUrl:
+#     Value:
+#       Fn::GetAtt:
+#         - ExpiredLinksSQSQueue
+#         - Arn
+#     Export:
+#       Name: ExpiredLinksSQSQueueUrl

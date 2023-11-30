@@ -2,13 +2,12 @@
   "name": "shortlinker-aws",
   "version": "1.0.0",
   "description": "Shortlinker REST API",
-  "main": "handlers.ts",
+  "main": "esbuild.js",
   "scripts": {
-    "start:dev": "nodemon handlers.ts",
-    "build": "node esbuild.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node esbuild.js",
+    "deploy": "set NODE_OPTIONS=--max-old-space-size=8192 && serverless deploy"
   },
-  "author": "",
+  "author": "Oleksii Kyselov",
   "license": "ISC",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.81",
@@ -21,7 +20,9 @@
     "nodemon": "^3.0.1",
     "serverless": "^3.37.0",
     "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-dynamodb-local": "^0.2.40",
     "serverless-esbuild": "^1.49.0",
+    "serverless-lift": "^1.28.1",
     "serverless-offline": "^13.3.0",
     "serverless-plugin-typescript": "^2.1.5",
     "ts-node": "^10.9.1",

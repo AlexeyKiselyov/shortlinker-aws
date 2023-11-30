@@ -1,6 +1,8 @@
 .serverless
 node_modules
+dist
 .build
+.esbuild
 .vscode
 .env
 TASK-DESCRIPTION-RU.md

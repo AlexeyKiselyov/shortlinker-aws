@@ -1,6 +1,4 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DeleteItemCommand } from '@aws-sdk/client-dynamodb';
-import { PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import { createLinkSchema, getLinkSchema } from '../models/link';
 
@@ -9,11 +7,19 @@ import {
   HttpError,
   generateShortUrl,
   createLinkTable,
-  docClientLocal,
-  docClientAws,
+  durationToExpireDate,
+  sendEmail,
 } from '../helpers';
 
 import { authenticate } from '../middlewares/authenticate';
+
+import { NewLink } from '../types';
+import {
+  deleteFromDb,
+  getItemsFromDb,
+  putIntoDb,
+  updateDb,
+} from '../helpers/dinamoDbService';
 
 import 'dotenv/config';
 type ProcessEnv = {
@@ -21,8 +27,6 @@ type ProcessEnv = {
   LINKS_TABLE_NAME: string;
 };
 const { GSI_OWNER_ID_PRIMARY, LINKS_TABLE_NAME } = process.env as ProcessEnv;
-
-const docClient = docClientLocal;
 
 // create short link and save in db
 export const createLink = async (
@@ -35,7 +39,8 @@ export const createLink = async (
     if (!decodedToken) {
       throw HttpError(401);
     }
-    const userId = decodedToken?.id!;
+    // const userId = decodedToken?.id!;
+    const { id: userId, email } = decodedToken;
 
     const reqBody = JSON.parse(event.body as string);
 
@@ -43,22 +48,20 @@ export const createLink = async (
 
     const { originUrl, duration } = reqBody;
 
+    const expireDate = durationToExpireDate(duration);
+
     const shortUrl = generateShortUrl(originUrl, userId);
 
-    const newLink = {
+    const newLink: NewLink = {
       id: shortUrl,
       originUrl,
-      duration,
+      expireDate,
       visit: 0,
       ownerId: userId,
+      ownerEmail: email,
     };
 
-    const createLinkCommand = new PutCommand({
-      TableName: LINKS_TABLE_NAME,
-      Item: newLink,
-    });
-
-    await docClient.send(createLinkCommand);
+    await putIntoDb(LINKS_TABLE_NAME, newLink);
 
     return {
       statusCode: 201,
@@ -86,14 +89,7 @@ export const deleteLink = async (
 
     await getLinkSchema.validate(id);
 
-    const deleteLinkCommand = new DeleteItemCommand({
-      TableName: LINKS_TABLE_NAME,
-      Key: {
-        id: { S: id! },
-      },
-    });
-
-    await docClient.send(deleteLinkCommand);
+    await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id! } });
 
     return {
       statusCode: 204,
@@ -116,16 +112,11 @@ export const getLinks = async (
 
     const ownerId = decodedToken?.id;
 
-    const getLinksCommand = new QueryCommand({
-      TableName: LINKS_TABLE_NAME,
-      IndexName: GSI_OWNER_ID_PRIMARY,
-      KeyConditionExpression: 'ownerId = :ownerId',
-      ExpressionAttributeValues: {
-        ':ownerId': ownerId,
-      },
-    });
-
-    const response = await docClient.send(getLinksCommand);
+    const response = await getItemsFromDb(
+      LINKS_TABLE_NAME,
+      GSI_OWNER_ID_PRIMARY,
+      { prop: 'ownerId', value: ownerId }
+    );
 
     if (!response.Items) {
       throw HttpError(404);
@@ -152,24 +143,21 @@ export const getLink = async (
 
     await getLinkSchema.validate(id);
 
-    const updateLinkCommand = new UpdateCommand({
-      TableName: LINKS_TABLE_NAME,
-      Key: {
-        id,
-      },
-      UpdateExpression: 'set visit = visit + :increment',
-      ExpressionAttributeValues: {
-        ':increment': 1,
-      },
-      ReturnValues: 'ALL_NEW',
-    });
-
-    const response = await docClient.send(updateLinkCommand);
+    const response = await updateDb(
+      LINKS_TABLE_NAME,
+      { id },
+      { prop: 'visit', value: null, increment: 1 }
+    );
 
     if (!response.Attributes) {
       throw HttpError(404);
     }
 
+    if (response.Attributes.expireDate === new Date('2050-01-01')) {
+      const ownerEmail: string = response.Attributes.ownerEmail;
+      await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id } });
+      await sendEmail({ email: ownerEmail, id });
+    }
     return {
       statusCode: 302,
       headers: {

@@ -8,6 +8,7 @@ import 'dotenv/config';
 
 type DecodedToken = {
   id: string;
+  email: string;
 };
 
 type ProcessEnv = {
