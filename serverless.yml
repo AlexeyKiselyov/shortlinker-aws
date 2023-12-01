@@ -21,9 +21,7 @@ provider:
 plugins:
   - serverless-lift
   - serverless-dotenv-plugin
-  - serverless-plugin-typescript
   - serverless-esbuild
-  - serverless-offline
 
 package:
   individually: true
@@ -33,53 +31,66 @@ constructs:
     type: queue
     batchSize: 10
     worker:
-      handler: dist/lambdas/worker.handler
+      handler: src/lambdas/worker.handler
 
 functions:
   register:
-    handler: dist/lambdas/auth.register
+    handler: src/lambdas/auth.register
     events:
       - http:
           path: /sign-up
           method: post
+    # package:
+    #   artifact: .esbuild/.serverless/register.zip
   login:
-    handler: dist/lambdas/auth.login
+    handler: src/lambdas/auth.login
     events:
       - http:
           path: /sign-in
           method: post
+    package:
+      artifact: .esbuild/.serverless/login.zip
   createLink:
-    handler: dist/lambdas/links.createLink
+    handler: src/lambdas/links.createLink
     events:
       - http:
           path: /link
           method: post
+    # package:
+    #   artifact: .esbuild/.serverless/createLink.zip
   getLink:
-    handler: dist/lambdas/links.getLink
+    handler: src/lambdas/links.getLink
     events:
       - http:
           path: /link/{id}
           method: get
+    # package:
+    #   artifact: .esbuild/.serverless/getLink.zip
   getLinks:
-    handler: dist/lambdas/links.getLinks
+    handler: src/lambdas/links.getLinks
     events:
       - http:
           path: /links
           method: get
+    # package:
+    #   artifact: .esbuild/.serverless/getLinks.zip
   deleteLink:
-    handler: dist/lambdas/links.deleteLink
+    handler: src/lambdas/links.deleteLink
     events:
       - http:
           path: /link/{id}
           method: delete
-
+    # package:
+    #   artifact: .esbuild/.serverless/deleteLink.zip
   publisher:
-    handler: dist/lambdas/publisher.handler
+    handler: src/lambdas/publisher.handler
     events:
       - eventBridge:
-          schedule: rate(10 minutes)
+          schedule: rate(1 hour)
     environment:
       QUEUE_URL: ${construct:jobs.queueUrl}
+    # package:
+    #   artifact: .esbuild/.serverless/publisher.zip
 
   # processExpiredLinks:
   #   handler: src/lambdas/processExpiredLinks.handler
@@ -178,14 +189,16 @@ custom:
       - LinksTable
 
   esbuild:
-    tsconfig: true
-  #   entryPoints:
-  #     - './src/**/*.ts'
-  #   bundle: true
-  #   minify: true
-  #   platform: 'node'
-  #   sourcemap: true
-  #   target: 'node18'
+    bundle: true
+    minify: true
+    target: 'node18'
+    platform: 'node'
+    sourcemap: false
+    external:
+      - bcryptjs
+      - jsonwebtoken
+      - uuid
+      - yup
 # Outputs:
 #   ExpiredLinksSQSQueueUrl:
 #     Value:
