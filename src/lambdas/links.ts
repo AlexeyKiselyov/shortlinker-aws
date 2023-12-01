@@ -6,7 +6,6 @@ import {
   handleError,
   HttpError,
   generateShortUrl,
-  createLinkTable,
   durationToExpireDate,
   sendEmail,
 } from '../helpers';
@@ -33,13 +32,10 @@ export const createLink = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // await createLinkTable();
-
     const decodedToken = authenticate(event);
     if (!decodedToken) {
       throw HttpError(401);
     }
-    // const userId = decodedToken?.id!;
     const { id: userId, email } = decodedToken;
 
     const reqBody = JSON.parse(event.body as string);
@@ -153,7 +149,9 @@ export const getLink = async (
       throw HttpError(404);
     }
 
-    if (response.Attributes.expireDate === new Date('2050-01-01')) {
+    if (
+      response.Attributes.expireDate === new Date('2050-01-01').toISOString()
+    ) {
       const ownerEmail: string = response.Attributes.ownerEmail;
       await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id } });
       await sendEmail({ email: ownerEmail, id });

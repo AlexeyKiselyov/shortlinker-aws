@@ -1,19 +1,25 @@
 import 'dotenv/config';
-import { DynamoDB, SQS } from 'aws-sdk';
+import {
+  DynamoDBClient,
+  ScanCommand,
+  DeleteItemCommand,
+} from '@aws-sdk/client-dynamodb';
 
-const dynamoDB = new DynamoDB.DocumentClient();
+import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
+
+const dynamoDB = new DynamoDBClient();
 
 type ProcessEnv = {
   LINKS_TABLE_NAME: string;
   QUEUE_URL: string;
-  AWS_REGION: string;
+  REGION_AWS_FOR_SQS: string;
 };
 
-const { LINKS_TABLE_NAME, QUEUE_URL, AWS_REGION } = process.env as ProcessEnv;
+const { LINKS_TABLE_NAME, QUEUE_URL, REGION_AWS_FOR_SQS } =
+  process.env as ProcessEnv;
 
-const sqs = new SQS({
-  apiVersion: 'latest',
-  region: AWS_REGION,
+const sqs = new SQSClient({
+  region: REGION_AWS_FOR_SQS,
 });
 
 export const handler = async (): Promise<void> => {
@@ -42,24 +48,26 @@ export const handler = async (): Promise<void> => {
 };
 
 async function getExpiredLinks(): Promise<any[]> {
-  const nowDate = new Date();
+  const nowDate = new Date().toISOString();
   const params = {
     TableName: LINKS_TABLE_NAME,
-    FilterExpression: '#expireDate <= :nowDate',
-    ExpressionAttributeValues: { ':nowDate': nowDate },
+    FilterExpression: 'expireDate <= :nowDate',
+    ExpressionAttributeValues: { ':nowDate': { S: nowDate } },
   };
 
-  const result = await dynamoDB.scan(params).promise();
+  const command = new ScanCommand(params);
+  const result = await dynamoDB.send(command);
   return result.Items || [];
 }
 
 async function deleteLink(linkId: string): Promise<void> {
   const params = {
     TableName: LINKS_TABLE_NAME,
-    Key: { id: linkId },
+    Key: { id: { S: linkId } },
   };
 
-  await dynamoDB.delete(params).promise();
+  const command = new DeleteItemCommand(params);
+  await dynamoDB.send(command);
 }
 
 async function sendBatchNotifications(messages: any[]): Promise<void> {
@@ -73,5 +81,6 @@ async function sendBatchNotifications(messages: any[]): Promise<void> {
     QueueUrl: QUEUE_URL,
   };
 
-  await sqs.sendMessageBatch(params).promise();
+  const command = new SendMessageBatchCommand(params);
+  await sqs.send(command);
 }

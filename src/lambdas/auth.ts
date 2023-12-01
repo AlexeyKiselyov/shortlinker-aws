@@ -1,5 +1,4 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-// import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import { v4 } from 'uuid';
 
@@ -8,13 +7,7 @@ import { registerSchema, loginSchema } from '../models/user';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
-import {
-  HttpError,
-  handleError,
-  createUserTable,
-  docClientLocal,
-  docClientAws,
-} from '../helpers';
+import { HttpError, handleError } from '../helpers';
 import { getItemFromDb, putIntoDb, updateDb } from '../helpers/dinamoDbService';
 
 import { NewUser, ProcessEnv, UserData } from '../types';
@@ -23,8 +16,6 @@ import 'dotenv/config';
 
 const { TOKEN_SECRET_KEY, TOKEN_EXPIRES, USERS_TABLE_NAME } =
   process.env as ProcessEnv;
-
-const docClient = docClientLocal;
 
 // sign up controller
 export const register = async (
@@ -38,14 +29,6 @@ export const register = async (
     const { email, password }: UserData = reqBody;
 
     const user = await getItemFromDb(USERS_TABLE_NAME!, { email });
-    // const getUserCommand = new GetCommand({
-    //   TableName: USERS_TABLE_NAME,
-    //   Key: {
-    //     email,
-    //   },
-    // });
-
-    // const user = await docClient.send(getUserCommand);
 
     if (user.Item) {
       throw HttpError(409, 'Email in use');
@@ -72,12 +55,6 @@ export const register = async (
     };
 
     await putIntoDb(USERS_TABLE_NAME!, newUser);
-    // const createUserCommand = new PutCommand({
-    //   TableName: USERS_TABLE_NAME,
-    //   Item: newUser,
-    // });
-
-    // await docClient.send(createUserCommand);
 
     return {
       statusCode: 201,
@@ -103,15 +80,6 @@ export const login = async (
     const { email, password } = reqBody;
 
     const user = await getItemFromDb(USERS_TABLE_NAME!, { email });
-
-    // const getUserCommand = new GetCommand({
-    //   TableName: USERS_TABLE_NAME,
-    //   Key: {
-    //     email,
-    //   },
-    // });
-
-    // const user = await docClient.send(getUserCommand);
 
     if (!user.Item) {
       return {
@@ -150,19 +118,6 @@ export const login = async (
       { email },
       { prop: 'accessToken', value: accessToken }
     );
-
-    // const updateUserCommand = new UpdateCommand({
-    //   TableName: USERS_TABLE_NAME,
-    //   Key: {
-    //     email,
-    //   },
-    //   UpdateExpression: 'set accessToken = :accessToken',
-    //   ExpressionAttributeValues: {
-    //     ':token': accessToken,
-    //   },
-    // });
-
-    // await docClient.send(updateUserCommand);
 
     return {
       statusCode: 200,

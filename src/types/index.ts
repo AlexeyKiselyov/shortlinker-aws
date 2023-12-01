@@ -27,6 +27,11 @@ export type ConditionExpression = {
   increment?: number;
 };
 
+export type QueryExpression = {
+  prop: string;
+  value: string;
+};
+
 export type DeleteItem = {
   id: { S: string };
 };
@@ -47,6 +52,6 @@ export type ProcessEnv = {
   USERS_TABLE_NAME?: string;
   LINKS_TABLE_NAME?: string;
   GSI_OWNER_ID_PRIMARY?: string;
-  AWS_REGION?: string;
+  REGION_AWS_FOR_SQS?: string;
   SES_EMAIL_SENDER?: string;
 };

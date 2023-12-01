@@ -16,6 +16,7 @@ provider:
           Action:
             - 'dynamodb:*'
             - 'ses:*'
+            - 'sqs:*'
           Resource: '*'
 
 plugins:
@@ -86,7 +87,7 @@ functions:
     handler: src/lambdas/publisher.handler
     events:
       - eventBridge:
-          schedule: rate(1 hour)
+          schedule: rate(10 hours)
     environment:
       QUEUE_URL: ${construct:jobs.queueUrl}
     # package:
@@ -194,11 +195,13 @@ custom:
     target: 'node18'
     platform: 'node'
     sourcemap: false
-    external:
-      - bcryptjs
-      - jsonwebtoken
-      - uuid
-      - yup
+    # external:
+    #   - aws-lambda
+    #   - bcryptjs
+    #   - dotenv
+    #   - jsonwebtoken
+    #   - uuid
+    #   - yup
 # Outputs:
 #   ExpiredLinksSQSQueueUrl:
 #     Value:

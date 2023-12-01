@@ -14,13 +14,13 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 
 import 'dotenv/config';
-import { docClientLocal } from './createTables'; // TO LOCAL TEST
 import {
   Key,
   NewUser,
   NewLink,
   ConditionExpression,
   DeleteItem,
+  QueryExpression,
 } from '../types';
 
 export const docClientAws = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -96,7 +96,7 @@ export const deleteFromDb = async (
 export const getItemsFromDb = async (
   tableName: string,
   indexName: string,
-  queryObj: ConditionExpression
+  queryObj: QueryExpression
 ): Promise<QueryCommandOutput> => {
   const { prop, value } = queryObj;
 
@@ -105,10 +105,29 @@ export const getItemsFromDb = async (
     IndexName: indexName,
     KeyConditionExpression: `${prop} = :${prop}`,
     ExpressionAttributeValues: {
-      [`:${prop}`]: value,
-    } as Record<string, any>,
+      [`:${prop}`]: { S: value },
+    },
   });
 
   const response = await docClientAws.send(getItemsCommand);
   return response;
 };
+// export const getItemsFromDb = async (
+//   tableName: string,
+//   indexName: string,
+//   queryObj: ConditionExpression
+// ): Promise<QueryCommandOutput> => {
+//   const { prop, value } = queryObj;
+
+//   const getItemsCommand = new QueryCommand({
+//     TableName: tableName,
+//     IndexName: indexName,
+//     KeyConditionExpression: `${prop} = :${prop}`,
+//     ExpressionAttributeValues: {
+//       [`:${prop}`]: value,
+//     } as Record<string, any>,
+//   });
+
+//   const response = await docClientAws.send(getItemsCommand);
+//   return response;
+// };
