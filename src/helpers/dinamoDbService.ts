@@ -1,7 +1,9 @@
 import {
   DeleteItemCommand,
+  DeleteItemCommandOutput,
   DynamoDBClient,
   QueryCommand,
+  ScanCommand,
 } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
@@ -84,13 +86,14 @@ export const updateDb = async (
 export const deleteFromDb = async (
   tableName: string,
   deleteItem: DeleteItem
-): Promise<void> => {
+): Promise<DeleteItemCommandOutput> => {
   const deleteCommand = new DeleteItemCommand({
     TableName: tableName,
     Key: deleteItem,
   });
 
-  await docClientAws.send(deleteCommand);
+  const result = await docClientAws.send(deleteCommand);
+  return result;
 };
 
 export const getItemsFromDb = async (
@@ -112,22 +115,17 @@ export const getItemsFromDb = async (
   const response = await docClientAws.send(getItemsCommand);
   return response;
 };
-// export const getItemsFromDb = async (
-//   tableName: string,
-//   indexName: string,
-//   queryObj: ConditionExpression
-// ): Promise<QueryCommandOutput> => {
-//   const { prop, value } = queryObj;
 
-//   const getItemsCommand = new QueryCommand({
-//     TableName: tableName,
-//     IndexName: indexName,
-//     KeyConditionExpression: `${prop} = :${prop}`,
-//     ExpressionAttributeValues: {
-//       [`:${prop}`]: value,
-//     } as Record<string, any>,
-//   });
+export const scanExpiredLinksInDb = async (
+  tableName: string
+): Promise<any[]> => {
+  const nowDate = new Date().toISOString();
+  const scanExpLinksCommand = new ScanCommand({
+    TableName: tableName,
+    FilterExpression: 'expireDate <= :nowDate',
+    ExpressionAttributeValues: { ':nowDate': { S: nowDate } },
+  });
 
-//   const response = await docClientAws.send(getItemsCommand);
-//   return response;
-// };
+  const result = await docClientAws.send(scanExpLinksCommand);
+  return result.Items || [];
+};

@@ -7,6 +7,7 @@ import { emailToSendSchema } from '../models/email';
 
 const { SES_EMAIL_SENDER } = process.env as ProcessEnv;
 
+// Sends a message to the user that its link has been expired
 export const sendEmail = async function (emailToSend: EmailToSend) {
   await emailToSendSchema.validate(emailToSend);
   const { email, message, id } = emailToSend;
@@ -28,6 +29,6 @@ export const sendEmail = async function (emailToSend: EmailToSend) {
     const command = new SendEmailCommand(input);
     await client.send(command);
   } catch (err) {
-    console.log('Error sending email:', err);
+    console.log(`Error sending email to "${email}":`, err);
   }
 };

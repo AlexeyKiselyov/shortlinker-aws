@@ -1,19 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import * as jwt from 'jsonwebtoken';
 
-import { HttpError } from '../helpers/HttpError';
-import { handleError } from '../helpers/handleError';
-
+import { DecodedToken, ProcessEnv } from '../types';
 import 'dotenv/config';
 
-type DecodedToken = {
-  id: string;
-  email: string;
-};
-
-type ProcessEnv = {
-  TOKEN_SECRET_KEY: string;
-};
 const { TOKEN_SECRET_KEY } = process.env as ProcessEnv;
 
 export const authenticate = (
@@ -26,7 +16,7 @@ export const authenticate = (
   }
 
   try {
-    const decodedToken = jwt.verify(token, TOKEN_SECRET_KEY) as DecodedToken;
+    const decodedToken = jwt.verify(token, TOKEN_SECRET_KEY!) as DecodedToken;
     return decodedToken;
   } catch {
     return null;

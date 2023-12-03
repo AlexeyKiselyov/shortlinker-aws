@@ -1,5 +1,10 @@
 export type UserData = { email: string; password: string };
 
+export type DecodedToken = {
+  id: string;
+  email: string;
+};
+
 export type Key = {
   email?: string;
   id?: string;
@@ -46,6 +51,10 @@ export type SQSEvent = {
   Records: Array<{ body: string }>;
 };
 
+export interface CustomError extends Error {
+  status?: number;
+}
+
 export type ProcessEnv = {
   TOKEN_SECRET_KEY?: string;
   TOKEN_EXPIRES?: string;
@@ -54,4 +63,5 @@ export type ProcessEnv = {
   GSI_OWNER_ID_PRIMARY?: string;
   REGION_AWS_FOR_SQS?: string;
   SES_EMAIL_SENDER?: string;
+  QUEUE_URL?: string;
 };

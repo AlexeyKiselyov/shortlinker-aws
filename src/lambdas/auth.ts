@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import { v4 } from 'uuid';
@@ -11,8 +12,6 @@ import { HttpError, handleError } from '../helpers';
 import { getItemFromDb, putIntoDb, updateDb } from '../helpers/dinamoDbService';
 
 import { NewUser, ProcessEnv, UserData } from '../types';
-
-import 'dotenv/config';
 
 const { TOKEN_SECRET_KEY, TOKEN_EXPIRES, USERS_TABLE_NAME } =
   process.env as ProcessEnv;

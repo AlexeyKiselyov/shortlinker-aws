@@ -19,6 +19,13 @@ provider:
             - 'sqs:*'
           Resource: '*'
 
+constructs:
+  jobs:
+    type: queue
+    batchSize: 10
+    worker:
+      handler: src/lambdas/worker.handler
+
 plugins:
   - serverless-lift
   - serverless-dotenv-plugin
@@ -27,13 +34,6 @@ plugins:
 package:
   individually: true
 
-constructs:
-  jobs:
-    type: queue
-    batchSize: 10
-    worker:
-      handler: src/lambdas/worker.handler
-
 functions:
   register:
     handler: src/lambdas/auth.register
@@ -41,8 +41,6 @@ functions:
       - http:
           path: /sign-up
           method: post
-    # package:
-    #   artifact: .esbuild/.serverless/register.zip
   login:
     handler: src/lambdas/auth.login
     events:
@@ -57,55 +55,31 @@ functions:
       - http:
           path: /link
           method: post
-    # package:
-    #   artifact: .esbuild/.serverless/createLink.zip
   getLink:
     handler: src/lambdas/links.getLink
     events:
       - http:
           path: /link/{id}
           method: get
-    # package:
-    #   artifact: .esbuild/.serverless/getLink.zip
   getLinks:
     handler: src/lambdas/links.getLinks
     events:
       - http:
           path: /links
           method: get
-    # package:
-    #   artifact: .esbuild/.serverless/getLinks.zip
   deleteLink:
     handler: src/lambdas/links.deleteLink
     events:
       - http:
           path: /link/{id}
           method: delete
-    # package:
-    #   artifact: .esbuild/.serverless/deleteLink.zip
   publisher:
     handler: src/lambdas/publisher.handler
     events:
       - eventBridge:
-          schedule: rate(10 hours)
+          schedule: rate(24 hours)
     environment:
       QUEUE_URL: ${construct:jobs.queueUrl}
-    # package:
-    #   artifact: .esbuild/.serverless/publisher.zip
-
-  # processExpiredLinks:
-  #   handler: src/lambdas/processExpiredLinks.handler
-  #   events:
-  #     - eventBridge:
-  #         schedule: rate(1 hour)
-
-  #     - sqs:
-  #         batchSize: 10
-  #         functionResponseType: ReportBatchItemFailures
-
-  #   environment:
-  #     SQS_QUEUE_URL:
-  #       Fn::ImportValue: ExpiredLinksSQSQueueUrl
 
 resources:
   Resources:
@@ -159,27 +133,6 @@ resources:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
-    # ExpiredLinksSQSQueue:
-    #   Type: 'AWS::SQS::Queue'
-    #   Properties:
-    #     QueueName: 'ExpiredLinksSQSQueue'
-
-    # ExpiredLinksSQSQueuePolicy:
-    #   Type: AWS::SQS::QueuePolicy
-    #   Properties:
-    #     Queues:
-    #       - Ref: ExpiredLinksSQSQueue
-    #     PolicyDocument:
-    #       Version: '2012-10-17'
-    #       Statement:
-    #         - Effect: Allow
-    #           Principal: '*'
-    #           Action: 'sqs:SendMessage'
-    #           Resource:
-    #             Fn::GetAtt:
-    #               - ExpiredLinksSQSQueue
-    #               - Arn
-
 custom:
   globalTables:
     regions:
@@ -195,18 +148,3 @@ custom:
     target: 'node18'
     platform: 'node'
     sourcemap: false
-    # external:
-    #   - aws-lambda
-    #   - bcryptjs
-    #   - dotenv
-    #   - jsonwebtoken
-    #   - uuid
-    #   - yup
-# Outputs:
-#   ExpiredLinksSQSQueueUrl:
-#     Value:
-#       Fn::GetAtt:
-#         - ExpiredLinksSQSQueue
-#         - Arn
-#     Export:
-#       Name: ExpiredLinksSQSQueueUrl

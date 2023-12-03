@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import { createLinkSchema, getLinkSchema } from '../models/link';
@@ -20,7 +21,6 @@ import {
   updateDb,
 } from '../helpers/dinamoDbService';
 
-import 'dotenv/config';
 type ProcessEnv = {
   GSI_OWNER_ID_PRIMARY: string;
   LINKS_TABLE_NAME: string;
