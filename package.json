@@ -5,7 +5,7 @@
   "main": "esbuild.js",
   "scripts": {
     "build": "node esbuild.js",
-    "deploy": "set NODE_OPTIONS=--max-old-space-size=8192 && serverless deploy"
+    "deploy": "serverless deploy"
   },
   "author": "Oleksii Kyselov",
   "license": "ISC",
