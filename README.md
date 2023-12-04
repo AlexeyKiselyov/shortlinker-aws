@@ -11,6 +11,7 @@
    NODE.js.</a>
 3. <a href = "https://github.com/serverless/serverless" target="_blank" rel="noreferrer noopener">Need
    serverless-framework.</a>
+4. Create `.env` file using `.env.example` file.
 
 ### Installation
 
