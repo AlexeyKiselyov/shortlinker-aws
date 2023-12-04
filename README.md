@@ -1,6 +1,6 @@
 <h1 align = "center">SHORTLINKER API</h1>
 
-### You can read more about the API in the **TASK-DESCRIPTION.md** file.
+### You can read more about the API in the **TASK-DESCRIPTION.md** file ⬆️.
 
 ## Guide:
 
@@ -18,13 +18,13 @@
 1. Open terminal in current directory.
 2. To install modules run:
 
-```bash
+```bash ⌨️
 npm install
 ```
 
 3. To add your AWS IAM credentials run:
 
-```bash
+```bash ⌨️
 serverless config credentials --provider aws --key <YourAccessKeyId> --secret <YourSecretAccessKey> profile serverlessUser
 ```
 
@@ -32,7 +32,7 @@ serverless config credentials --provider aws --key <YourAccessKeyId> --secret <Y
 
 1. To deploy API on AWS run:
 
-```bash
+```bash ⌨️
 npm run deploy
 ```
 

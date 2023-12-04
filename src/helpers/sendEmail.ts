@@ -4,12 +4,13 @@ const client = new SESClient();
 
 import { EmailToSend, ProcessEnv } from '../types';
 import { emailToSendSchema } from '../models/email';
+import { validateService } from './validateService';
 
 const { SES_EMAIL_SENDER } = process.env as ProcessEnv;
 
 // Sends a message to the user that its link has been expired
 export const sendEmail = async function (emailToSend: EmailToSend) {
-  await emailToSendSchema.validate(emailToSend);
+  await validateService(emailToSendSchema, emailToSend);
   const { email, message, id } = emailToSend;
 
   const messageToSend = message ? message : `Your link ${id} has expired.`;

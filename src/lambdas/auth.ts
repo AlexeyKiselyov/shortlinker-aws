@@ -8,7 +8,7 @@ import { registerSchema, loginSchema } from '../models/user';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
-import { HttpError, handleError } from '../helpers';
+import { HttpError, handleError, validateService } from '../helpers';
 import { getItemFromDb, putIntoDb, updateDb } from '../helpers/dinamoDbService';
 
 import { NewUser, ProcessEnv, UserData } from '../types';
@@ -23,7 +23,7 @@ export const register = async (
   try {
     const reqBody = JSON.parse(event.body as string);
 
-    await registerSchema.validate(reqBody, { abortEarly: false });
+    await validateService(registerSchema, reqBody);
 
     const { email, password }: UserData = reqBody;
 
@@ -74,7 +74,7 @@ export const login = async (
   try {
     const reqBody = JSON.parse(event.body as string);
 
-    await loginSchema.validate(reqBody, { abortEarly: false });
+    await validateService(loginSchema, reqBody);
 
     const { email, password } = reqBody;
 

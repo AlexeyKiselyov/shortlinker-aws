@@ -9,6 +9,7 @@ import {
   generateShortUrl,
   durationToExpireDate,
   sendEmail,
+  validateService,
 } from '../helpers';
 
 import { authenticate } from '../middlewares/authenticate';
@@ -40,7 +41,7 @@ export const createLink = async (
 
     const reqBody = JSON.parse(event.body as string);
 
-    await createLinkSchema.validate(reqBody);
+    await validateService(createLinkSchema, reqBody);
 
     const { originUrl, duration } = reqBody;
 
@@ -51,6 +52,7 @@ export const createLink = async (
     const newLink: NewLink = {
       id: shortUrl,
       originUrl,
+      duration,
       expireDate,
       visit: 0,
       ownerId: userId,
@@ -83,7 +85,7 @@ export const deleteLink = async (
       throw HttpError(400, 'Missed ID Parameter');
     }
 
-    await getLinkSchema.validate(id);
+    await validateService(getLinkSchema, id);
 
     const result = await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id! } });
     if (!result.Attributes) {
@@ -140,7 +142,7 @@ export const getLink = async (
       throw HttpError(400, 'Missed ID Parameter');
     }
 
-    await getLinkSchema.validate(id);
+    await validateService(getLinkSchema, id);
 
     const response = await updateDb(
       LINKS_TABLE_NAME,

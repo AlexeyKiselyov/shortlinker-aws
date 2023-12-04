@@ -20,6 +20,7 @@ export type NewUser = {
 export type NewLink = {
   id: string;
   originUrl: string;
+  duration: string;
   expireDate: Date | string;
   visit: number;
   ownerId: string;

@@ -7,7 +7,6 @@ provider:
   deploymentMethod: direct
   runtime: nodejs18.x
   region: eu-central-1
-  stage: dev
 
   iam:
     role:
@@ -39,13 +38,13 @@ functions:
     handler: src/lambdas/auth.register
     events:
       - http:
-          path: /sign-up
+          path: /api/v1/sign-up
           method: post
   login:
     handler: src/lambdas/auth.login
     events:
       - http:
-          path: /sign-in
+          path: /api/v1/sign-in
           method: post
     package:
       artifact: .esbuild/.serverless/login.zip
@@ -53,25 +52,25 @@ functions:
     handler: src/lambdas/links.createLink
     events:
       - http:
-          path: /link
+          path: /api/v1/link
           method: post
   getLink:
     handler: src/lambdas/links.getLink
     events:
       - http:
-          path: /link/{id}
+          path: /api/v1/link/{id}
           method: get
   getLinks:
     handler: src/lambdas/links.getLinks
     events:
       - http:
-          path: /links
+          path: /api/v1/links
           method: get
   deleteLink:
     handler: src/lambdas/links.deleteLink
     events:
       - http:
-          path: /link/{id}
+          path: /api/v1/link/{id}
           method: delete
   publisher:
     handler: src/lambdas/publisher.handler
