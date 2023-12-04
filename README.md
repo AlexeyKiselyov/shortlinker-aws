@@ -1,6 +1,6 @@
 <h1 align = "center">SHORTLINKER API</h1>
 
-### You can read more about the API in the `TASK-DESCRIPTION.md` file.
+### You can read more about the API in the **TASK-DESCRIPTION.md** file.
 
 ## Guide:
 
@@ -8,9 +8,9 @@
 
 1. AWS CLI installed and configured.
 2. <a href = "https://nodejs.org/uk" target="_blank" rel="noreferrer noopener">Need
-   NODE.js.</a>.
+   NODE.js.</a>
 3. <a href = "https://github.com/serverless/serverless" target="_blank" rel="noreferrer noopener">Need
-   `serverless-framework`.</a>.
+   serverless-framework.</a>
 
 ### Installation
 
