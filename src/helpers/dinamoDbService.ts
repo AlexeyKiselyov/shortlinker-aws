@@ -90,6 +90,7 @@ export const deleteFromDb = async (
   const deleteCommand = new DeleteItemCommand({
     TableName: tableName,
     Key: deleteItem,
+    ReturnValues: 'ALL_OLD',
   });
 
   const result = await docClientAws.send(deleteCommand);

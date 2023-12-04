@@ -85,7 +85,10 @@ export const deleteLink = async (
 
     await getLinkSchema.validate(id);
 
-    await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id! } });
+    const result = await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id! } });
+    if (!result.Attributes) {
+      throw HttpError(404);
+    }
 
     return {
       statusCode: 204,

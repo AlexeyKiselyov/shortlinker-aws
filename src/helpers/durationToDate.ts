@@ -1,10 +1,6 @@
 export const durationToExpireDate = (duration: string): string => {
   let expireDate = new Date();
 
-  if (duration === '10-minutes') {
-    expireDate.setMinutes(expireDate.getMinutes() + 10);
-    return expireDate.toISOString();
-  }
   if (duration === '1-day') {
     expireDate.setDate(expireDate.getDate() + 1);
     return expireDate.toISOString();
@@ -17,6 +13,7 @@ export const durationToExpireDate = (duration: string): string => {
     expireDate.setDate(expireDate.getDate() + 7);
     return expireDate.toISOString();
   } else {
+    // if duration = 'one-time'
     return new Date('2050-01-01').toISOString();
   }
 };
