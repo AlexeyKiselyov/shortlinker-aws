@@ -1,0 +1,802 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Swagger Shortlinker",
+    "description": "This API was created to solve the problem of using long URL addresses. You can use it to shorten a long link.\n\nSome useful links:\n- [The Shortlinker API repository](https://github.com/AlexeyKiselyov/shortlinker-aws/tree/main)\n- [The source API definition for the Shortlinker](https://github.com/AlexeyKiselyov/shortlinker-aws/tree/main/docs/openapi.json)",
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "https://g1hu4dqzgj.execute-api.eu-central-1.amazonaws.com/dev/api/v1/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "link",
+      "description": "Operations with links"
+    },
+    {
+      "name": "links",
+      "description": "Get user links"
+    },
+    {
+      "name": "auth",
+      "description": "Operations about user"
+    }
+  ],
+  "paths": {
+    "/link": {
+      "post": {
+        "tags": [
+          "link"
+        ],
+        "summary": "Create a new link",
+        "description": "Create a new link",
+        "operationId": "createLink",
+        "requestBody": {
+          "description": "Create a new link",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "originUrl",
+                  "duration"
+                ],
+                "type": "object",
+                "properties": {
+                  "originUrl": {
+                    "type": "string",
+                    "examples": [
+                      "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+                    ]
+                  },
+                  "duration": {
+                    "type": "string",
+                    "examples": [
+                      "1-day"
+                    ],
+                    "enum": [
+                      "one-time",
+                      "1-day",
+                      "3-days",
+                      "7-days"
+                    ]
+                  }
+                },
+                "xml": {
+                  "name": "link"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "examples": [
+                        "a7375c"
+                      ]
+                    },
+                    "originUrl": {
+                      "type": "string",
+                      "examples": [
+                        "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+                      ]
+                    },
+                    "duration": {
+                      "type": "string",
+                      "examples": [
+                        "1-day"
+                      ],
+                      "enum": [
+                        "one-time",
+                        "1-day",
+                        "3-days",
+                        "7-days"
+                      ]
+                    },
+                    "expireDate": {
+                      "type": "string",
+                      "examples": [
+                        "2023-12-05T18:57:52.778Z"
+                      ]
+                    },
+                    "visit": {
+                      "type": "integer",
+                      "examples": [
+                        1
+                      ]
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "examples": [
+                        "700dd38e-0bc0-4efd-a85a-f923b5d77afp"
+                      ]
+                    },
+                    "ownerEmail": {
+                      "type": "string",
+                      "examples": [
+                        "some-email@gmail.com"
+                      ]
+                    }
+                  },
+                  "xml": {
+                    "name": "linkResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Some validation error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorised"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/link/{id}": {
+      "delete": {
+        "tags": [
+          "link"
+        ],
+        "summary": "Delete the link",
+        "description": "Delete the link",
+        "operationId": "deleteLink",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Some validation error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorised"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "link"
+        ],
+        "summary": "Get link",
+        "description": "Get link",
+        "operationId": "getLink",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect",
+            "headers": {
+              "Location": {
+                "description": "Redirect URL",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Some validation error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/links": {
+      "get": {
+        "tags": [
+          "links"
+        ],
+        "summary": "Get links",
+        "description": "Get links",
+        "operationId": "getLinks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "examples": [
+                          "a7375c"
+                        ]
+                      },
+                      "originUrl": {
+                        "type": "string",
+                        "examples": [
+                          "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+                        ]
+                      },
+                      "duration": {
+                        "type": "string",
+                        "examples": [
+                          "1-day"
+                        ],
+                        "enum": [
+                          "one-time",
+                          "1-day",
+                          "3-days",
+                          "7-days"
+                        ]
+                      },
+                      "expireDate": {
+                        "type": "string",
+                        "examples": [
+                          "2023-12-05T18:57:52.778Z"
+                        ]
+                      },
+                      "visit": {
+                        "type": "integer",
+                        "examples": [
+                          1
+                        ]
+                      },
+                      "ownerId": {
+                        "type": "string",
+                        "examples": [
+                          "700dd38e-0bc0-4efd-a85a-f923b5d77afp"
+                        ]
+                      },
+                      "ownerEmail": {
+                        "type": "string",
+                        "examples": [
+                          "some-email@gmail.com"
+                        ]
+                      }
+                    },
+                    "xml": {
+                      "name": "linkResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorised"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not found"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/sign-up": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Create user",
+        "description": "Create user.",
+        "operationId": "register",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "examples": [
+                      "john@email.com"
+                    ]
+                  },
+                  "password": {
+                    "type": "string",
+                    "examples": [
+                      "123456"
+                    ]
+                  }
+                },
+                "xml": {
+                  "name": "user"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "examples": [
+                        "700dd38e-0bc0-4efd-a85a-f923b5d77afr"
+                      ]
+                    },
+                    "token": {
+                      "type": "string",
+                      "examples": [
+                        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGRkMzhlLTBiYzAtNGVmZC1hODVhLWY5MjNiNWQ3N2FmZCIsImVtYWlsIjoiYWxlc2hha2lzZWxldjEyM0BnbWFpbC5jb20iLCJpYXQiOjE3MDE3OTI2MTQsImV4cCI6MTcwMjM5NzQxNH0.gmGOHYONEm7VBWuZ2uePznayjvFKFueyWVo601VzqEQ"
+                      ]
+                    }
+                  },
+                  "xml": {
+                    "name": "user"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Some validation error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email in use"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User login",
+        "description": "User login.",
+        "operationId": "login",
+        "requestBody": {
+          "description": "User data object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "examples": [
+                      "john@email.com"
+                    ]
+                  },
+                  "password": {
+                    "type": "string",
+                    "examples": [
+                      "123456"
+                    ]
+                  }
+                },
+                "xml": {
+                  "name": "user"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "examples": [
+                        "700dd38e-0bc0-4efd-a85a-f923b5d77afr"
+                      ]
+                    },
+                    "token": {
+                      "type": "string",
+                      "examples": [
+                        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGRkMzhlLTBiYzAtNGVmZC1hODVhLWY5MjNiNWQ3N2FmZCIsImVtYWlsIjoiYWxlc2hha2lzZWxldjEyM0BnbWFpbC5jb20iLCJpYXQiOjE3MDE3OTI2MTQsImV4cCI6MTcwMjM5NzQxNH0.gmGOHYONEm7VBWuZ2uePznayjvFKFueyWVo601VzqEQ"
+                      ]
+                    }
+                  },
+                  "xml": {
+                    "name": "user"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Some validation error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email or password invalid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "No user with this data was found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "examples": [
+              "john@email.com"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "examples": [
+              "123456"
+            ]
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "UserAuthResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "examples": [
+              "700dd38e-0bc0-4efd-a85a-f923b5d77afr"
+            ]
+          },
+          "token": {
+            "type": "string",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGRkMzhlLTBiYzAtNGVmZC1hODVhLWY5MjNiNWQ3N2FmZCIsImVtYWlsIjoiYWxlc2hha2lzZWxldjEyM0BnbWFpbC5jb20iLCJpYXQiOjE3MDE3OTI2MTQsImV4cCI6MTcwMjM5NzQxNH0.gmGOHYONEm7VBWuZ2uePznayjvFKFueyWVo601VzqEQ"
+            ]
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "Link": {
+        "required": [
+          "originUrl",
+          "duration"
+        ],
+        "type": "object",
+        "properties": {
+          "originUrl": {
+            "type": "string",
+            "examples": [
+              "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+            ]
+          },
+          "duration": {
+            "type": "string",
+            "examples": [
+              "1-day"
+            ],
+            "enum": [
+              "one-time",
+              "1-day",
+              "3-days",
+              "7-days"
+            ]
+          }
+        },
+        "xml": {
+          "name": "link"
+        }
+      },
+      "LinkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "examples": [
+              "a7375c"
+            ]
+          },
+          "originUrl": {
+            "type": "string",
+            "examples": [
+              "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+            ]
+          },
+          "duration": {
+            "type": "string",
+            "examples": [
+              "1-day"
+            ],
+            "enum": [
+              "one-time",
+              "1-day",
+              "3-days",
+              "7-days"
+            ]
+          },
+          "expireDate": {
+            "type": "string",
+            "examples": [
+              "2023-12-05T18:57:52.778Z"
+            ]
+          },
+          "visit": {
+            "type": "integer",
+            "examples": [
+              1
+            ]
+          },
+          "ownerId": {
+            "type": "string",
+            "examples": [
+              "700dd38e-0bc0-4efd-a85a-f923b5d77afp"
+            ]
+          },
+          "ownerEmail": {
+            "type": "string",
+            "examples": [
+              "some-email@gmail.com"
+            ]
+          }
+        },
+        "xml": {
+          "name": "linkResponse"
+        }
+      }
+    },
+    "requestBodies": {
+      "Link": {
+        "description": "Link object that needs to be created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "required": [
+                "originUrl",
+                "duration"
+              ],
+              "type": "object",
+              "properties": {
+                "originUrl": {
+                  "type": "string",
+                  "examples": [
+                    "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+                  ]
+                },
+                "duration": {
+                  "type": "string",
+                  "examples": [
+                    "1-day"
+                  ],
+                  "enum": [
+                    "one-time",
+                    "1-day",
+                    "3-days",
+                    "7-days"
+                  ]
+                }
+              },
+              "xml": {
+                "name": "link"
+              }
+            }
+          },
+          "application/xml": {
+            "schema": {
+              "required": [
+                "originUrl",
+                "duration"
+              ],
+              "type": "object",
+              "properties": {
+                "originUrl": {
+                  "type": "string",
+                  "examples": [
+                    "https://hotline.ua/ua/auto-avtoshiny-i-motoshiny/tigar-winter-20555-r16-94h/?tab=prices&gad_source=1&gclid=Cj0KCQiAr8eqBhD3ARIsAIe-buNOQM6KCJqlZldBkbar-GyEtY7b"
+                  ]
+                },
+                "duration": {
+                  "type": "string",
+                  "examples": [
+                    "1-day"
+                  ],
+                  "enum": [
+                    "one-time",
+                    "1-day",
+                    "3-days",
+                    "7-days"
+                  ]
+                }
+              },
+              "xml": {
+                "name": "link"
+              }
+            }
+          }
+        }
+      },
+      "User": {
+        "description": "User object",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "examples": [
+                      "700dd38e-0bc0-4efd-a85a-f923b5d77afr"
+                    ]
+                  },
+                  "token": {
+                    "type": "string",
+                    "examples": [
+                      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGRkMzhlLTBiYzAtNGVmZC1hODVhLWY5MjNiNWQ3N2FmZCIsImVtYWlsIjoiYWxlc2hha2lzZWxldjEyM0BnbWFpbC5jb20iLCJpYXQiOjE3MDE3OTI2MTQsImV4cCI6MTcwMjM5NzQxNH0.gmGOHYONEm7VBWuZ2uePznayjvFKFueyWVo601VzqEQ"
+                    ]
+                  }
+                },
+                "xml": {
+                  "name": "user"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

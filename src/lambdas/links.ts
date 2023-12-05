@@ -14,7 +14,7 @@ import {
 
 import { authenticate } from '../middlewares/authenticate';
 
-import { NewLink } from '../types';
+import { NewLink, ProcessEnv } from '../types';
 import {
   deleteFromDb,
   getItemsFromDb,
@@ -22,10 +22,6 @@ import {
   updateDb,
 } from '../helpers/dinamoDbService';
 
-type ProcessEnv = {
-  GSI_OWNER_ID_PRIMARY: string;
-  LINKS_TABLE_NAME: string;
-};
 const { GSI_OWNER_ID_PRIMARY, LINKS_TABLE_NAME } = process.env as ProcessEnv;
 
 // create short link and save in db
@@ -59,7 +55,7 @@ export const createLink = async (
       ownerEmail: email,
     };
 
-    await putIntoDb(LINKS_TABLE_NAME, newLink);
+    await putIntoDb(LINKS_TABLE_NAME!, newLink);
 
     return {
       statusCode: 201,
@@ -87,13 +83,55 @@ export const deleteLink = async (
 
     await validateService(getLinkSchema, id);
 
-    const result = await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id! } });
+    const result = await deleteFromDb(LINKS_TABLE_NAME!, { id: { S: id! } });
     if (!result.Attributes) {
       throw HttpError(404);
     }
 
     return {
       statusCode: 204,
+      body: '',
+    };
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+// get short link
+export const getLink = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  try {
+    const id = event.pathParameters?.id as string | undefined;
+    if (!id) {
+      throw HttpError(400, 'Missed ID Parameter');
+    }
+
+    await validateService(getLinkSchema, id);
+
+    const response = await updateDb(
+      LINKS_TABLE_NAME!,
+      { id },
+      { prop: 'visit', value: null, increment: 1 }
+    );
+
+    if (!response.Attributes) {
+      throw HttpError(404);
+    }
+
+    // if this link is "one-time" => delete link and send message to owner
+    if (
+      response.Attributes.expireDate === new Date('2050-01-01').toISOString()
+    ) {
+      const ownerEmail: string = response.Attributes.ownerEmail;
+      await deleteFromDb(LINKS_TABLE_NAME!, { id: { S: id } });
+      await sendEmail({ email: ownerEmail, id });
+    }
+    return {
+      statusCode: 302,
+      headers: {
+        Location: response.Attributes?.originUrl,
+      },
       body: '',
     };
   } catch (err) {
@@ -114,8 +152,8 @@ export const getLinks = async (
     const ownerId = decodedToken?.id;
 
     const response = await getItemsFromDb(
-      LINKS_TABLE_NAME,
-      GSI_OWNER_ID_PRIMARY,
+      LINKS_TABLE_NAME!,
+      GSI_OWNER_ID_PRIMARY!,
       { prop: 'ownerId', value: ownerId }
     );
 
@@ -126,47 +164,6 @@ export const getLinks = async (
     return {
       statusCode: 200,
       body: JSON.stringify(response.Items),
-    };
-  } catch (err) {
-    return handleError(err);
-  }
-};
-
-// get short link
-export const getLink = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  try {
-    const id = event.pathParameters?.id as string | undefined;
-    if (!id) {
-      throw HttpError(400, 'Missed ID Parameter');
-    }
-
-    await validateService(getLinkSchema, id);
-
-    const response = await updateDb(
-      LINKS_TABLE_NAME,
-      { id },
-      { prop: 'visit', value: null, increment: 1 }
-    );
-
-    if (!response.Attributes) {
-      throw HttpError(404);
-    }
-
-    if (
-      response.Attributes.expireDate === new Date('2050-01-01').toISOString()
-    ) {
-      const ownerEmail: string = response.Attributes.ownerEmail;
-      await deleteFromDb(LINKS_TABLE_NAME, { id: { S: id } });
-      await sendEmail({ email: ownerEmail, id });
-    }
-    return {
-      statusCode: 302,
-      headers: {
-        Location: response.Attributes?.originUrl,
-      },
-      body: '',
     };
   } catch (err) {
     return handleError(err);

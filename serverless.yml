@@ -38,16 +38,14 @@ functions:
     handler: src/lambdas/auth.register
     events:
       - http:
-          path: /api/v1/sign-up
+          path: /api/v1/auth/sign-up
           method: post
   login:
     handler: src/lambdas/auth.login
     events:
       - http:
-          path: /api/v1/sign-in
+          path: /api/v1/auth/sign-in
           method: post
-    package:
-      artifact: .esbuild/.serverless/login.zip
   createLink:
     handler: src/lambdas/links.createLink
     events:
@@ -60,18 +58,18 @@ functions:
       - http:
           path: /api/v1/link/{id}
           method: get
-  getLinks:
-    handler: src/lambdas/links.getLinks
-    events:
-      - http:
-          path: /api/v1/links
-          method: get
   deleteLink:
     handler: src/lambdas/links.deleteLink
     events:
       - http:
           path: /api/v1/link/{id}
           method: delete
+  getLinks:
+    handler: src/lambdas/links.getLinks
+    events:
+      - http:
+          path: /api/v1/links
+          method: get
   publisher:
     handler: src/lambdas/publisher.handler
     events:
