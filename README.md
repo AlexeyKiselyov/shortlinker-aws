@@ -41,8 +41,8 @@ npm run deploy
 
 ## Endpoints
 
-- **POST /sign-up** - register new user
-- **POST /sign-in** - login user
+- **POST /auth/sign-up** - register new user
+- **POST /auth/sign-in** - login user
 
 - **POST /link** - create new link
 - **GET /link/{id}** - get link by id
