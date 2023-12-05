@@ -157,7 +157,7 @@ export const getLinks = async (
       { prop: 'ownerId', value: ownerId }
     );
 
-    if (!response.Items) {
+    if (response.Items && response.Items.length === 0) {
       throw HttpError(404);
     }
 
