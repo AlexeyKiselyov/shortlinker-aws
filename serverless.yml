@@ -70,6 +70,12 @@ functions:
       - http:
           path: /api/v1/links
           method: get
+  catchAll:
+    handler: src/lambdas/catchAll.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
   publisher:
     handler: src/lambdas/publisher.handler
     events:
@@ -96,6 +102,11 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+
+        GlobalTableRegion: eu-west-1
+
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
 
     LinksTable:
       Type: AWS::DynamoDB::Table
@@ -130,15 +141,12 @@ resources:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
-custom:
-  globalTables:
-    regions:
-      - eu-central-1
-      - eu-west-3
-    sources:
-      - UsersTable
-      - LinksTable
+        GlobalTableRegion: eu-west-1
 
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+custom:
   esbuild:
     bundle: true
     minify: true
